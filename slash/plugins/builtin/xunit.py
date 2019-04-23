@@ -75,11 +75,13 @@ class Plugin(PluginInterface):
         if config.root.parallel.worker_id is not None:
             return
 
+        suite_time = sum([result.get_execution_time() for result in context.session.results.iter_test_results()])
+
         e = E('testsuite', {
             "name": "slash-suite",
             "hostname": socket.getfqdn(),
             "timestamp": self._start_time.isoformat().rsplit(".", 1)[0],
-            "time": "0",
+            "time": str(suite_time),
             "tests": str(context.session.results.get_num_results()),
             "errors": str(context.session.results.get_num_errors()),
             "failures": str(context.session.results.get_num_failures()),
@@ -90,7 +92,7 @@ class Plugin(PluginInterface):
             test = E("testcase", {
                 "name": result.test_metadata.address,
                 "classname": result.test_metadata.class_name or '',
-                "time": "0"
+                "time": str(result.get_execution_time())
             })
             self._add_errors(test, result)
 

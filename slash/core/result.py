@@ -4,7 +4,7 @@ import os
 import pickle
 import sys
 from numbers import Number
-
+import time
 import gossip
 import logbook
 from vintage import deprecated
@@ -35,6 +35,8 @@ class Result(object):
         self.test_metadata = test_metadata
         #: dictionary to be use by tests and plugins to store result-related information for later analysis
         self.data = {}
+        self._start_time = 0
+        self._execution_time = 0
         self._errors = []
         self._failures = []
         self._skips = []
@@ -155,6 +157,7 @@ class Result(object):
         return not self.is_started() and not self.has_errors_or_failures()
 
     def mark_started(self):
+        self._start_time = time.time()
         self._started = True
 
     def is_error(self):
@@ -191,6 +194,7 @@ class Result(object):
         return self._finished
 
     def mark_finished(self):
+        self._execution_time = time.time() - self._start_time
         self._finished = True
 
     def mark_interrupted(self):
@@ -245,6 +249,13 @@ class Result(object):
         if append:
             self._skips.append(reason)
         context.reporter.report_test_skip_added(context.test, reason)
+
+    def get_execution_time(self):
+        """Returns the test execution time
+
+        :return: a integer
+        """
+        return self._execution_time
 
     def get_errors(self):
         """Returns the list of errors recorded for this result
